@@ -293,11 +293,13 @@ class Binner:
 
     def run_betterbins_ensemble_binning(self, compleasm_db_path, checkm2_db_path):
         
-        betterbins_output_dir = f"{self.output_directory}/BetterBins_output/"
+        betterbins_output_dir = f"{self.output_directory}/BetterBins_ensemble_output/"
         betterbins_args = ['mamba', 'run', '--prefix', '/opt/mamba/envs/BetterBins', 'BetterBins', '--threads', self.threads, 
                                    '--path-to-bin-dir', self.final_bins_directory, '--results-directory', betterbins_output_dir, '--prediction-approach', '--eukrep-majority',
                                    '--checkm2-db-path', checkm2_db_path, '--compleasm-db-dir', compleasm_db_path]
         
+        run_and_log_a_subprocess(self.log_directory_path, betterbins_args, "BetterBins")
+
 
 def setup_binning(args, sample_name):
     log_directory = f"{args.output_directory}/log_directory/"
