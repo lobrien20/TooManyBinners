@@ -169,9 +169,9 @@ class Binner:
         cls.log_directory_path = log_directory_path
     
     @classmethod 
-    def add_or_change_final_bins_directory(cls, final_bins_directory):
+    def add_or_change_final_bins_directory(cls, all_individual_binner_bins_directory):
         
-        cls.final_bins_directory = final_bins_directory
+        cls.all_individual_binner_bins_directory = all_individual_binner_bins_directory
         
 
     @classmethod
@@ -293,7 +293,11 @@ class Binner:
         self.move_bin_results_to_main_bin_dir(f"{output_directory}/bins", "vamb")
         
 
-
+    def run_betterbins_ensemble_binning(self):
+        betterbins_output_dir = f"{self.output_directory}/BetterBins_output/"
+        betterbins_args = ['mamba', 'run', '--prefix', '/opt/mamba/envs/BetterBins', 'BetterBins', '--contigs-file-path', self.contigs_path, '--threads', self.threads, 
+                                   '--path-to-bin-dir', self.final_bins_directory, '--results-directory', betterbins_output_dir, '--prediction-approach', '--assume-prokaryote']
+        
 
 
 def setup_binning(args, sample_name):
@@ -346,9 +350,9 @@ def generate_contigs(args, sample_name, log_directory):
 
 
 def run_binning(output_directory, the_binner, binner_option_list):
-    the_binner.add_or_change_final_bins_directory(f"{output_directory}/final_bins/")
-    if not os.path.isdir(f"{output_directory}/final_bins/"):
-        os.mkdir(f"{output_directory}/final_bins/")
+    the_binner.add_or_change_final_bins_directory(f"{output_directory}/all_individual_binner_bins/")
+    if not os.path.isdir(f"{output_directory}/all_individual_binner_bins/"):
+        os.mkdir(f"{output_directory}/all_individual_binner_bins/")
     bin_methods_dict = {'Semibin2' : the_binner.run_semibin2(f"{output_directory}/Semibin2/"), 'Metabat2' : the_binner.run_metabat2(f"{output_directory}/Metabat2/"),
                         'Maxbin2' : the_binner.run_maxbin2(f"{output_directory}/Maxbin2/"), "Vamb" : the_binner.run_vamb(f"{output_directory}/Vamb/"), "CONCOCT" : the_binner.run_concoct(f"{output_directory}/CONCOCT/")}
     

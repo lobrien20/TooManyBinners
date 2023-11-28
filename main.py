@@ -18,7 +18,7 @@ def main():
     parser.add_argument("-c", "--custom-kmer-lengths", help="Custom kmer lengths for metaspades assembly (will default to auto)")
     parser.add_argument("-us", "--using-scaffolds", help="Using metaspades assembly scaffolds?")
     parser.add_argument("-m", "--memory", help="Available memory", default='100', type=str)
-
+    
     args = parser.parse_args()
     sample_name = ""
     forward_read_file_name = args.forward_reads.split("/")[-1]
