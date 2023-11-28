@@ -21,12 +21,13 @@ MirrorURL: http://ftp.us.debian.org/debian/
 
     mamba install -c conda-forge psutil
     mamba create -n prebinning -c conda-forge -c bioconda bowtie2 samtools spades
-    mamba create -n CONCOCTMetabat2MaxBin2SemiBin2 -c conda-forge -c bioconda concoct maxbin2 metabat2 semibin scikit-learn=1.1
+    mamba create -n CONCOCTMetabat2MaxBin2SemiBin2 -c conda-forge -c bioconda concoct=1.1.0 maxbin2=2.2.7 metabat2=2.15 semibin=2.0.2 scikit-learn=1.1
 
     mamba create -n Vamb4 pip python=3.10
-    bash -c "source /opt/mamba/bin/activate Vamb4 && pip install vamb"
+    mamba create -n BetterBins -c conda-forge -c bioconda checkm2=1.0.1 compleasm=0.2.2 eukrep=0.6.7 python=3.8
+    bash -c "source /opt/mamba/bin/activate Vamb4 && pip install vamb=4.0.0"
     wget https://raw.githubusercontent.com/RasmussenLab/vamb/master/src/create_fasta.py -O /opt/create_fasta.py
-    git clone https://www.github.com/lobrien20/TooManyBinners -b tests
+    git clone https://www.github.com/lobrien20/TooManyBinners -b dev
     mv TooManyBinners /opt/
 
 %runscript

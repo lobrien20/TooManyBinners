@@ -138,61 +138,55 @@ class BinSet:
          
 
 class Binner:
-    contigs_path = ""
-    fwd_read_path = ""
-    rev_read_path = ""
-    abundance_information_path = ""
-    log_directory_path = ""
-    threads = "1"
-    min_contig_length = "2000"
-    sample_name = ""
-    final_bins_directory = ""
 
 
+    def __init__(self, contigs_path, fwd_read_path, rev_read_path, abundance_information_path, log_directory_path, sample_name, final_bins_directory, min_contig_length, threads):
+        self.contigs_path = contigs_path
+        self.fwd_read_path = fwd_read_path
+        self.rev_read_path = rev_read_path
+        self.abundance_information_path = abundance_information_path
+        self.log_directory_path = log_directory_path
+        self.sample_name = sample_name
+        self.final_bins_directory = final_bins_directory
+        self.min_contig_length = min_contig_length
+        self.threads = threads
 
-    @classmethod
-    def add_read_contig_and_abundance_paths_to_base_binner_class(cls, contigs_path, fwd_read_path, rev_read_path, abundance_file_path):
+    def add_read_contig_and_abundance_paths_to_base_binner_class(self, contigs_path, fwd_read_path, rev_read_path, abundance_file_path):
         
-        cls.contigs_path = contigs_path
-        cls.fwd_read_path = fwd_read_path
-        cls.rev_read_path = rev_read_path
-        cls.abundance_information_path = abundance_file_path
+        self.contigs_path = contigs_path
+        self.fwd_read_path = fwd_read_path
+        self.rev_read_path = rev_read_path
+        self.abundance_information_path = abundance_file_path
 
-    @classmethod
-    def add_or_change_threads(cls, new_threads):
-        cls.threads = new_threads
+    def add_or_change_threads(self, new_threads):
+        self.threads = new_threads
 
-    @classmethod
 
-    def add_or_change_log_directory(cls, log_directory_path):
+    def add_or_change_log_directory(self, log_directory_path):
         
-        cls.log_directory_path = log_directory_path
+        self.log_directory_path = log_directory_path
     
-    @classmethod 
-    def add_or_change_final_bins_directory(cls, all_individual_binner_bins_directory):
+    def add_or_change_final_bins_directory(self, all_individual_binner_bins_directory):
         
-        cls.all_individual_binner_bins_directory = all_individual_binner_bins_directory
+        self.all_individual_binner_bins_directory = all_individual_binner_bins_directory
         
 
-    @classmethod
-    def add_or_change_min_contig_length(cls, min_contig_length):
+    def add_or_change_min_contig_length(self, min_contig_length):
         
-        cls.min_contig_length = min_contig_length
+        self.min_contig_length = min_contig_length
         
-    @classmethod
-    def add_or_change_sample_name(cls, sample_name):
-        cls.sample_name = sample_name
+    def add_or_change_sample_name(self, sample_name):
+        self.sample_name = sample_name
 
-    @classmethod
-    def calculate_read_depth(cls, depth_output_path):
+    def calculate_read_depth(self, depth_output_path):
 
         if os.path.exists(depth_output_path):
-            cls.read_depths_path = depth_output_path
+            self.read_depths_path = depth_output_path
             return
 
-        get_contig_depth_args = ['mamba', 'run', '--prefix', '/opt/mamba/envs/CONCOCTMetabat2MaxBin2SemiBin2', 'jgi_summarize_bam_contig_depths', '--outputDepth', depth_output_path, cls.abundance_information_path]
-        run_and_log_a_subprocess(cls.log_directory_path, get_contig_depth_args, "metabat2_contig_read_depth_gen")
-        cls.read_depths_path = depth_output_path
+        get_contig_depth_args = ['mamba', 'run', '--prefix', '/opt/mamba/envs/CONCOCTMetabat2MaxBin2SemiBin2', 'jgi_summarize_bam_contig_depths', '--outputDepth', depth_output_path, self.abundance_information_path]
+        run_and_log_a_subprocess(self.log_directory_path, get_contig_depth_args, "metabat2_contig_read_depth_gen")
+        self.read_depths_path = depth_output_path
        
     def move_bin_results_to_main_bin_dir(self, bin_directory, binner_name):
         for result in os.listdir(bin_directory):
@@ -203,6 +197,9 @@ class Binner:
                 self.move_bin_results_to_main_bin_dir(result_path, binner_name)
         
             if ".fa" or ".fasta" in result_path:
+                if "unbinned" or "lowDepth" or "tooShort" in result_path: # catches metabat2 fastas
+                    continue
+
                 shutil.copy(result_path, f"{self.final_bins_directory}/{binner_name}_{result}")
 
 
@@ -293,12 +290,14 @@ class Binner:
         self.move_bin_results_to_main_bin_dir(f"{output_directory}/bins", "vamb")
         
 
-    def run_betterbins_ensemble_binning(self):
-        betterbins_output_dir = f"{self.output_directory}/BetterBins_output/"
-        betterbins_args = ['mamba', 'run', '--prefix', '/opt/mamba/envs/BetterBins', 'BetterBins', '--contigs-file-path', self.contigs_path, '--threads', self.threads, 
-                                   '--path-to-bin-dir', self.final_bins_directory, '--results-directory', betterbins_output_dir, '--prediction-approach', '--assume-prokaryote']
-        
 
+    def run_betterbins_ensemble_binning(self, compleasm_db_path, checkm2_db_path):
+        
+        betterbins_output_dir = f"{self.output_directory}/BetterBins_output/"
+        betterbins_args = ['mamba', 'run', '--prefix', '/opt/mamba/envs/BetterBins', 'BetterBins', '--threads', self.threads, 
+                                   '--path-to-bin-dir', self.final_bins_directory, '--results-directory', betterbins_output_dir, '--prediction-approach', '--eukrep-majority',
+                                   '--checkm2-db-path', checkm2_db_path, '--compleasm-db-dir', compleasm_db_path]
+        
 
 def setup_binning(args, sample_name):
     log_directory = f"{args.output_directory}/log_directory/"
@@ -308,9 +307,11 @@ def setup_binning(args, sample_name):
     
     contig_path = generate_contigs(args, sample_name, log_directory)
 
-
     contig_abundance_gen = ContigAbundances(output_directory=args.output_directory, contig_file_path=contig_path, read_fwd_path=args.forward_reads, read_rev_path=args.reverse_reads, threads=args.threads, log_directory=log_directory)
-
+    the_binner = Binner(contigs_path=contig_path, fwd_read_path=args.forward_reads, rev_read_path=args.reverse_reads, 
+                        abundance_information_path=contig_abundance_gen.contig_abundance_file, log_directory_path=log_directory, sample_name=sample_name, final_bins_directory=f"{args.output_directory}/final_bins/", 
+                        min_contig_length=args.min_contig_length, threads=args.threads
+                        )
     Binner.add_read_contig_and_abundance_paths_to_base_binner_class(contigs_path=contig_path, fwd_read_path=args.forward_reads, rev_read_path=args.reverse_reads, abundance_file_path=contig_abundance_gen.contig_abundance_file)
     Binner.add_or_change_sample_name = sample_name
     if args.minimum_contig_length:
@@ -367,5 +368,8 @@ def run_binning(output_directory, the_binner, binner_option_list):
             print(f"Could not find individual binner chosen: {binner} - please check your binner options. Exiting.")
             exit()
 
+    return the_binner
 
 
+def run_final_ensemble_binning(the_binner, checkm2_db_path, compleasm_db_path):
+    the_binner.run_betterbins_ensemble_binning(compleasm_db_path, checkm2_db_path)
